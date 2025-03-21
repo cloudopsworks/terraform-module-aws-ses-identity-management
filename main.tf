@@ -22,7 +22,7 @@ locals {
         domain  = domain.domain
         token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens[item]
       }
-    } if try(domain.dkim, true) == true && try(domain.verification, false) == true
+    } if try(domain.dkim, true) == true && try(domain.verify, false) == true
   ]...)
 }
 
@@ -51,7 +51,7 @@ resource "aws_sesv2_email_identity" "email" {
 data "aws_route53_zone" "domain" {
   for_each = {
     for key, domain in local.domains : key => domain
-    if try(domain.verification, false) == true
+    if try(domain.verify, false) == true
   }
   name = each.value.domain
 }
@@ -59,7 +59,7 @@ data "aws_route53_zone" "domain" {
 # resource "aws_route53_record" "amazonses" {
 #   for_each = {
 #     for key, domain in local.domains : key => domain
-#     if try(domain.verification, false) == true
+#     if try(domain.verify, false) == true
 #   }
 #   zone_id = data.aws_route53_record.this[each.key].zone_id
 #   name    = "_amazonses.${each.value.domain}"
