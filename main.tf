@@ -16,7 +16,7 @@ locals {
 
   dkim = merge([
     for key, domain in local.domains : {
-      for item in range(length(aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens)) :
+      for item in range(length(aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens)) :
       "${key}-${item}" => {
         zone_id = data.aws_route53_zone.domain[key].zone_id
         domain  = domain.domain
