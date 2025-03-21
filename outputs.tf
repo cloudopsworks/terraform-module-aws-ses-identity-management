@@ -11,8 +11,8 @@ output "domains" {
       type              = item.identity_type
       configuration_set = item.configuration_set_name
       dkim = {
-        status                    = item.dkim_attributes[0].status
-        signing_attributes_origin = item.dkim_attributes[0].signing_attributes_origin
+        status                    = item.dkim_signing_attributes[0].status
+        signing_attributes_origin = item.dkim_signing_attributes[0].signing_attributes_origin
       }
       verified_for_sending_status = item.verified_for_sending_status
     }
