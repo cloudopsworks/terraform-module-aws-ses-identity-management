@@ -16,11 +16,11 @@ locals {
 
   dkim = merge([
     for key, domain in local.domains : {
-      for item in range(length(aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens)) :
+      for item in range(length(aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens)) :
       "${key}-${item}" => {
         zone_id = data.aws_route53_zone.domain[key].zone_id
         domain  = domain.domain
-        token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens[item]
+        token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens[item]
       }
     } if try(domain.dkim, true) == true && try(domain.verify, false) == true
   ]...)
@@ -31,7 +31,7 @@ resource "aws_sesv2_email_identity" "domain" {
   email_identity         = each.value.domain
   configuration_set_name = try(each.value.configuration_set, null)
   dynamic "dkim_signing_attributes" {
-    for_each = try(each.value.dkim, true) == true ? [each.value] : []
+    for_each = try(each.value.dkim, true) == true ? [1] : []
     content {
       domain_signing_private_key = try(each.value.dkim_private_key, null)
       domain_signing_selector    = try(each.value.dkim_selector, null)
