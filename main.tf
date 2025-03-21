@@ -20,7 +20,7 @@ locals {
       "${key}-${item}" => {
         zone_id = data.aws_route53_zone.domain[key].zone_id
         domain  = domain.domain
-        token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens[item]
+        token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens[item]
       }
     } if try(domain.dkim, true) == true && try(domain.verify, false) == true
   ]...)
