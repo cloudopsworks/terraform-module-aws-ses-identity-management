@@ -22,7 +22,7 @@ locals {
         domain  = domain.domain
         token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes.tokens[item]
       }
-    } if try(domain.dkim, true) == true
+    } if try(domain.dkim, true) == true && try(domain.verification, false) == true
   ]...)
 }
 
@@ -69,10 +69,11 @@ data "aws_route53_zone" "domain" {
 # }
 
 resource "aws_route53_record" "amazonses_dkim" {
-  for_each = local.dkim
-  zone_id  = each.value.zone_id
-  name     = "${each.value.token}._domainkey"
-  type     = "CNAME"
-  ttl      = "600"
-  records  = ["${each.value.token}.dkim.amazonses.com"]
+  for_each        = local.dkim
+  zone_id         = each.value.zone_id
+  allow_overwrite = true
+  name            = "${each.value.token}._domainkey"
+  type            = "CNAME"
+  ttl             = "600"
+  records         = ["${each.value.token}.dkim.amazonses.com"]
 }

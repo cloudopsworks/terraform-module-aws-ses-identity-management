@@ -1,4 +1,4 @@
-name: Terraform Transit Gateway Module
+name: Terraform Module AWS SES Identity Management
 #logo: logo/logo.jpg
 
 license: "APACHE2"
@@ -8,10 +8,13 @@ copyrights:
     url: "https://cloudops.works"
     year: "2024"
 
-github_repo: cloudopsworks/terraform-module-aws-vpc-setup
+github_repo: cloudopsworks/terraform-module-aws-ses-identity-management
 
 description: |-
-  VPC Module for setting up transit gateway with ResourceAccessMananger support.
+  This Terraform module manages AWS SES (Simple Email Service) identities, including domain and email identities. 
+  It supports DKIM (DomainKeys Identified Mail) signing and Route 53 DNS records for domain verification and DKIM setup. 
+  The module is designed to be flexible and configurable, allowing users to define SES identities and their 
+  configurations through input variables.
 
 # Introduction to the project
 #introduction: |-
