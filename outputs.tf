@@ -5,8 +5,10 @@
 #
 output "domains" {
   value = aws_sesv2_email_identity.domain
+  sensitive = true
 }
 
 output "emails" {
   value = aws_sesv2_email_identity.email
+  sensitive = true
 }
