@@ -15,10 +15,12 @@
 
 
 
-This Terraform module manages AWS SES (Simple Email Service) identities, including domain and email identities. 
-It supports DKIM (DomainKeys Identified Mail) signing and Route 53 DNS records for domain verification and DKIM setup. 
-The module is designed to be flexible and configurable, allowing users to define SES identities and their 
-configurations through input variables.
+This Terraform module provides comprehensive management of AWS SES (Simple Email Service) identities, supporting both 
+domain and email identity types. It offers advanced features including DKIM (DomainKeys Identified Mail) signing 
+with customizable configurations, automated Route 53 DNS record management for domain verification, and seamless 
+integration with SES configuration sets. The module supports both Amazon Easy DKIM and custom DKIM implementations, 
+with flexible options for key lengths and selectors. It's designed for organizations requiring robust email 
+infrastructure with proper authentication and verification mechanisms in place.
 
 
 ---
@@ -53,16 +55,28 @@ We have [*lots of terraform modules*][terraform_modules] that are Open Source an
 
 ## Introduction
 
-The AWS SES Identity Management Terraform module provides a comprehensive solution for managing 
-Simple Email Service (SES) identities in AWS. It supports both domain and email identities, 
-with built-in capabilities for DKIM signing and automated Route 53 DNS record management.
+The AWS SES Identity Management Terraform module offers a robust solution for managing email sending 
+capabilities through AWS Simple Email Service (SES). This module streamlines the process of setting up 
+and managing both domain and email identities, ensuring proper email authentication and delivery.
 
 Key features:
-- Domain and email identity management
-- DKIM signing configuration
-- Route 53 DNS record automation
-- Configuration set integration
-- Flexible identity verification options
+- Comprehensive domain and email identity management
+- Advanced DKIM signing with support for both Easy DKIM and custom implementations
+- Automated Route 53 DNS record management for domain verification
+- Seamless configuration set integration for enhanced email handling
+- Flexible identity verification options with customizable settings
+- Mail-from domain configuration capabilities
+- Email feedback handling and forwarding options
+- Automatic DKIM record generation and management
+- Support for custom DKIM selectors and private keys
+- Integration with organizational tagging standards
+
+Implementation Benefits:
+- Simplified email infrastructure setup
+- Enhanced email deliverability through proper authentication
+- Automated DNS management reducing manual configuration
+- Standardized naming conventions and tagging
+- Flexible deployment options across different environments
 
 ## Usage
 
@@ -115,14 +129,18 @@ Email identity options:
 
 ## Quick Start
 
-1. Add the module to your Terragrunt configuration:
+1. Create a new Terragrunt configuration file (terragrunt.hcl):
    ```hcl
+   include "root" {
+     path = find_in_parent_folders()
+   }
+
    terraform {
      source = "git::https://github.com/cloudopsworks/terraform-module-aws-ses-identity-management.git?ref=v1.0.0"
    }
    ```
 
-2. Configure basic organization settings:
+2. Configure organization and environment settings:
    ```hcl
    inputs = {
      org = {
@@ -131,34 +149,60 @@ Email identity options:
        environment_name  = "development"
        environment_type  = "dev"
      }
+     spoke_def = "ses"
    }
    ```
 
-3. Add your first domain identity:
+3. Add identity configurations:
    ```hcl
    inputs = {
      identities = {
        "main-domain" = {
          domain = "example.com"
          verify = true
+         dkim   = true
+       }
+       "support-email" = {
+         email              = "support@example.com"
+         configuration_set = "support-emails"
        }
      }
    }
    ```
 
-4. Run Terragrunt:
+4. (Optional) Add custom tags:
+   ```hcl
+   inputs = {
+     extra_tags = {
+       Project = "Email System"
+       Owner   = "DevOps Team"
+     }
+   }
+   ```
+
+5. Initialize and deploy:
    ```bash
    terragrunt init
    terragrunt plan
    terragrunt apply
    ```
 
-5. Verify your domain's DNS records in Route 53
+6. Verification steps:
+   - Check Route 53 for created DNS records
+   - Verify domain ownership in AWS SES console
+   - Confirm DKIM setup and status
+   - Test email sending capabilities once verified
+
+7. Monitor deployment:
+   - Check AWS SES console for identity status
+   - Verify DKIM signing is active
+   - Ensure DNS records are properly propagated
+   - Review any configuration set associations
 
 
 ## Examples
 
-### Basic Terragrunt Configuration
+### Basic Domain Identity Configuration
 ```hcl
 include "root" {
   path = find_in_parent_folders()
@@ -182,14 +226,36 @@ inputs = {
       verify = true
       dkim   = true
     }
+  }
+}
+```
+
+### Multiple Email Identities with Configuration Sets
+```hcl
+inputs = {
+  org = {
+    organization_name  = "MyCompany"
+    organization_unit = "technology"
+    environment_name  = "production"
+    environment_type  = "prod"
+  }
+
+  identities = {
     "support-email" = {
-      email = "support@company.com"
+      email              = "support@company.com"
+      configuration_set = "support-emails"
+      forwarding_enabled = true
+    }
+    "sales-email" = {
+      email              = "sales@company.com"
+      configuration_set = "sales-emails"
+      mail_from_domain  = "mail.company.com"
     }
   }
 }
 ```
 
-### Advanced Configuration with Custom DKIM
+### Advanced Domain Configuration with Custom DKIM
 ```hcl
 inputs = {
   org = {
@@ -207,12 +273,51 @@ inputs = {
       dkim_easy        = false
       dkim_private_key = "YOUR_PRIVATE_KEY"
       dkim_selector    = "custom"
+      configuration_set = "custom-domain-emails"
     }
   }
 
   extra_tags = {
     Project     = "Email System"
     Department = "IT"
+  }
+
+  spoke_def = "email"
+}
+```
+
+### Mixed Configuration with Multiple Identities
+```hcl
+inputs = {
+  org = {
+    organization_name  = "MyCompany"
+    organization_unit = "technology"
+    environment_name  = "staging"
+    environment_type  = "stage"
+  }
+
+  identities = {
+    "main-domain" = {
+      domain                   = "staging.company.com"
+      verify                   = true
+      dkim                    = true
+      dkim_easy               = true
+      dkim_easy_key_length    = "RSA_2048_BIT"
+      configuration_set      = "staging-emails"
+    }
+    "notification-email" = {
+      email                    = "notifications@staging.company.com"
+      configuration_set      = "notification-emails"
+      mail_from_domain        = "mail.staging.company.com"
+      behavior_on_mx_failure = "USE_DEFAULT_VALUE"
+    }
+  }
+
+  spoke_def = "ses"
+
+  extra_tags = {
+    Environment = "Staging"
+    Team       = "DevOps"
   }
 }
 ```
@@ -235,13 +340,13 @@ Available targets:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.89 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.4 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.92.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.8.0 |
 
 ## Modules
 
@@ -254,8 +359,12 @@ Available targets:
 | Name | Type |
 |------|------|
 | [aws_route53_record.amazonses_dkim](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_sesv2_dedicated_ip_assignment.ip_assignment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_dedicated_ip_assignment) | resource |
+| [aws_sesv2_dedicated_ip_pool.pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_dedicated_ip_pool) | resource |
 | [aws_sesv2_email_identity.domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity) | resource |
 | [aws_sesv2_email_identity.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity) | resource |
+| [aws_sesv2_email_identity_feedback_attributes.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity_feedback_attributes) | resource |
+| [aws_sesv2_email_identity_mail_from_attributes.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity_mail_from_attributes) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_route53_zone.domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 
@@ -263,6 +372,7 @@ Available targets:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_dedicated_ip_pools"></a> [dedicated\_ip\_pools](#input\_dedicated\_ip\_pools) | Dedicated IP pools configuration for SES | `any` | `{}` | no |
 | <a name="input_extra_tags"></a> [extra\_tags](#input\_extra\_tags) | Extra tags to add to the resources | `map(string)` | `{}` | no |
 | <a name="input_identities"></a> [identities](#input\_identities) | SES Identity configuration | `any` | `{}` | no |
 | <a name="input_is_hub"></a> [is\_hub](#input\_is\_hub) | Is this a hub or spoke configuration? | `bool` | `false` | no |
