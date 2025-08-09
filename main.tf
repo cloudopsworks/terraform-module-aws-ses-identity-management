@@ -19,7 +19,7 @@ locals {
 
   dkim = merge([
     for key, domain in local.domains : {
-      for item in range(length(aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens)) :
+      for item in range(try(domain.dkim_selector, null) != null ? 1 : 3) :
       "${key}-${item}" => {
         zone_id = data.aws_route53_zone.domain[key].zone_id
         domain  = domain.domain
@@ -51,6 +51,25 @@ resource "aws_sesv2_email_identity" "email" {
   tags                   = local.all_tags
 }
 
+resource "aws_sesv2_email_identity_feedback_attributes" "email" {
+  for_each = {
+    for key, email in local.emails : key => email
+    if try(email.forwarding_enabled, null) != null
+  }
+  email_identity           = each.value.email
+  email_forwarding_enabled = each.value.forwarding_enabled
+}
+
+resource "aws_sesv2_email_identity_mail_from_attributes" "email" {
+  for_each = {
+    for key, email in local.emails : key => email
+    if try(email.mail_from_domain, null) != null || try(email.behavior_on_mx_failure, null) != null
+  }
+  email_identity         = aws_sesv2_email_identity.email[each.key].email_identity
+  mail_from_domain       = try(each.value.mail_from_domain, null)
+  behavior_on_mx_failure = try(each.value.behavior_on_mx_failure, null)
+}
+
 data "aws_route53_zone" "domain" {
   for_each = {
     for key, domain in local.domains : key => domain
@@ -58,18 +77,6 @@ data "aws_route53_zone" "domain" {
   }
   name = each.value.domain
 }
-
-# resource "aws_route53_record" "amazonses" {
-#   for_each = {
-#     for key, domain in local.domains : key => domain
-#     if try(domain.verify, false) == true
-#   }
-#   zone_id = data.aws_route53_record.this[each.key].zone_id
-#   name    = "_amazonses.${each.value.domain}"
-#   type    = "TXT"
-#   ttl     = 300
-#   records = [aws_ses_domain_identity.this[each.key].verification_token]
-# }
 
 resource "aws_route53_record" "amazonses_dkim" {
   for_each        = local.dkim
