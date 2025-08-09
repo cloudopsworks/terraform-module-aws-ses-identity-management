@@ -51,10 +51,171 @@ We have [*lots of terraform modules*][terraform_modules] that are Open Source an
 
 
 
+## Introduction
+
+The AWS SES Identity Management Terraform module provides a comprehensive solution for managing 
+Simple Email Service (SES) identities in AWS. It supports both domain and email identities, 
+with built-in capabilities for DKIM signing and automated Route 53 DNS record management.
+
+Key features:
+- Domain and email identity management
+- DKIM signing configuration
+- Route 53 DNS record automation
+- Configuration set integration
+- Flexible identity verification options
+
+## Usage
 
 
+**IMPORTANT:** The `master` branch is used in `source` just as an example. In your code, do not pin to `master` because there may be breaking changes between releases.
+Instead pin to the release tag (e.g. `?ref=vX.Y.Z`) of one of our [latest releases](https://github.com/cloudopsworks/terraform-module-aws-ses-identity-management/releases).
 
 
+To use this module, you need to configure the following input variables:
+
+### Required Variables:
+- `org`: Organization configuration object containing:
+  - `organization_name`: Name of your organization
+  - `organization_unit`: Organization unit name
+  - `environment_name`: Environment name
+  - `environment_type`: Environment type (e.g., prod, dev)
+
+- `identities`: Map of SES identities to manage. Each identity can be either a domain or email:
+  ```hcl
+  identities = {
+    "example-domain" = {
+      domain = "example.com"
+      verify = true
+      dkim   = true
+    }
+    "example-email" = {
+      email = "user@example.com"
+    }
+  }
+  ```
+
+### Optional Variables:
+- `extra_tags`: Additional tags to apply to resources
+- `spoke_def`: Spoke definition for naming convention
+
+### Identity Configuration Options:
+Domain identity options:
+- `domain`: Domain name
+- `verify`: Enable Route 53 verification (default: false)
+- `dkim`: Enable DKIM signing (default: true)
+- `dkim_private_key`: Custom DKIM private key
+- `dkim_selector`: Custom DKIM selector
+- `dkim_easy`: Use Amazon Easy DKIM (default: true)
+- `dkim_easy_key_length`: Key length for Easy DKIM
+- `configuration_set`: Associated configuration set name
+
+Email identity options:
+- `email`: Email address
+- `configuration_set`: Associated configuration set name
+
+## Quick Start
+
+1. Add the module to your Terragrunt configuration:
+   ```hcl
+   terraform {
+     source = "git::https://github.com/cloudopsworks/terraform-module-aws-ses-identity-management.git?ref=v1.0.0"
+   }
+   ```
+
+2. Configure basic organization settings:
+   ```hcl
+   inputs = {
+     org = {
+       organization_name  = "MyCompany"
+       organization_unit = "technology"
+       environment_name  = "development"
+       environment_type  = "dev"
+     }
+   }
+   ```
+
+3. Add your first domain identity:
+   ```hcl
+   inputs = {
+     identities = {
+       "main-domain" = {
+         domain = "example.com"
+         verify = true
+       }
+     }
+   }
+   ```
+
+4. Run Terragrunt:
+   ```bash
+   terragrunt init
+   terragrunt plan
+   terragrunt apply
+   ```
+
+5. Verify your domain's DNS records in Route 53
+
+
+## Examples
+
+### Basic Terragrunt Configuration
+```hcl
+include "root" {
+  path = find_in_parent_folders()
+}
+
+terraform {
+  source = "git::https://github.com/cloudopsworks/terraform-module-aws-ses-identity-management.git?ref=v1.0.0"
+}
+
+inputs = {
+  org = {
+    organization_name  = "MyCompany"
+    organization_unit = "technology"
+    environment_name  = "production"
+    environment_type  = "prod"
+  }
+
+  identities = {
+    "main-domain" = {
+      domain = "company.com"
+      verify = true
+      dkim   = true
+    }
+    "support-email" = {
+      email = "support@company.com"
+    }
+  }
+}
+```
+
+### Advanced Configuration with Custom DKIM
+```hcl
+inputs = {
+  org = {
+    organization_name  = "MyCompany"
+    organization_unit = "technology"
+    environment_name  = "production"
+    environment_type  = "prod"
+  }
+
+  identities = {
+    "custom-domain" = {
+      domain            = "custom.company.com"
+      verify            = true
+      dkim             = true
+      dkim_easy        = false
+      dkim_private_key = "YOUR_PRIVATE_KEY"
+      dkim_selector    = "custom"
+    }
+  }
+
+  extra_tags = {
+    Project     = "Email System"
+    Department = "IT"
+  }
+}
+```
 
 
 
@@ -74,6 +235,7 @@ Available targets:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.89 |
 
 ## Providers
 
@@ -109,7 +271,10 @@ Available targets:
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_domains"></a> [domains](#output\_domains) | # (c) 2021-2025 Cloud Ops Works LLC - https://cloudops.works/ Find us on: GitHub: https://github.com/cloudopsworks WebSite: https://cloudops.works Distributed Under Apache v2.0 License |
+| <a name="output_emails"></a> [emails](#output\_emails) | n/a |
 
 
 
