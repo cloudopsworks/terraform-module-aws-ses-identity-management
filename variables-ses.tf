@@ -50,7 +50,7 @@ variable "dedicated_ip_pools" {
 }
 
 variable "cross_account" {
-  description = "(optional) "
+  description = "(optional) Cross account support for SES identity validation"
   type        = bool
   default     = false
 }

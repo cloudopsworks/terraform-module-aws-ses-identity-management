@@ -20,7 +20,7 @@ data "aws_route53_zone" "cross_domain" {
 resource "aws_route53_record" "cross_amazonses_dkim" {
   provider = aws.cross_account
   for_each = {
-    for k, v in local.dkim : k => v if !var.cross_account
+    for k, v in local.dkim : k => v if var.cross_account
   }
   zone_id         = data.aws_route53_zone.cross_domain[each.value.domain_key].id
   allow_overwrite = true
