@@ -14,6 +14,9 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6.4"
+      configuration_aliases = [
+        aws.cross_account
+      ]
     }
   }
 }

@@ -47,3 +47,9 @@ variable "dedicated_ip_pools" {
   default     = {}
   nullable    = false
 }
+
+variable "cross_account" {
+  description = "(optional) "
+  type = bool
+  default = false
+}
