@@ -21,9 +21,9 @@ locals {
     for key, domain in local.domains : {
       for item in range(try(domain.dkim_selector, null) != null ? 1 : 3) :
       "${key}-${item}" => {
-        zone_id = data.aws_route53_zone.domain[key].zone_id
-        domain  = domain.domain
-        token   = aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens[item]
+        domain_key = key
+        domain     = domain.domain
+        token      = aws_sesv2_email_identity.domain[key].dkim_signing_attributes[0].tokens[item]
       }
     } if try(domain.dkim, true) == true && try(domain.verify, false) == true
   ]...)
@@ -73,14 +73,17 @@ resource "aws_sesv2_email_identity_mail_from_attributes" "email" {
 data "aws_route53_zone" "domain" {
   for_each = {
     for key, domain in local.domains : key => domain
-    if try(domain.verify, false) == true
+    if try(domain.verify, false) == true && !var.cross_account
   }
-  name = each.value.domain
+  name         = try(each.value.validation_domain, each.value.domain)
+  private_zone = false
 }
 
 resource "aws_route53_record" "amazonses_dkim" {
-  for_each        = local.dkim
-  zone_id         = each.value.zone_id
+  for_each = {
+    for k, v in local.dkim : k => v if !var.cross_account
+  }
+  zone_id         = data.aws_route53_zone.domain[each.value.domain_key].id
   allow_overwrite = true
   name            = "${each.value.token}._domainkey"
   type            = "CNAME"
