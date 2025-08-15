@@ -115,6 +115,7 @@ To use this module, you need to configure the following input variables:
 ### Identity Configuration Options:
 Domain identity options:
 - `domain`: Domain name
+- `validation_domain`: Domain name to use for Route 53 validation (default: domain)
 - `verify`: Enable Route 53 verification (default: false)
 - `dkim`: Enable DKIM signing (default: true)
 - `dkim_private_key`: Custom DKIM private key
@@ -347,6 +348,7 @@ Available targets:
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 6.8.0 |
+| <a name="provider_aws.cross_account"></a> [aws.cross\_account](#provider\_aws.cross\_account) | 6.8.0 |
 
 ## Modules
 
@@ -359,6 +361,7 @@ Available targets:
 | Name | Type |
 |------|------|
 | [aws_route53_record.amazonses_dkim](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_record.cross_amazonses_dkim](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_sesv2_dedicated_ip_assignment.ip_assignment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_dedicated_ip_assignment) | resource |
 | [aws_sesv2_dedicated_ip_pool.pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_dedicated_ip_pool) | resource |
 | [aws_sesv2_email_identity.domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity) | resource |
@@ -366,12 +369,14 @@ Available targets:
 | [aws_sesv2_email_identity_feedback_attributes.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity_feedback_attributes) | resource |
 | [aws_sesv2_email_identity_mail_from_attributes.email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sesv2_email_identity_mail_from_attributes) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_route53_zone.cross_domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 | [aws_route53_zone.domain](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_cross_account"></a> [cross\_account](#input\_cross\_account) | (optional) Cross account support for SES identity validation | `bool` | `false` | no |
 | <a name="input_dedicated_ip_pools"></a> [dedicated\_ip\_pools](#input\_dedicated\_ip\_pools) | Dedicated IP pools configuration for SES | `any` | `{}` | no |
 | <a name="input_extra_tags"></a> [extra\_tags](#input\_extra\_tags) | Extra tags to add to the resources | `map(string)` | `{}` | no |
 | <a name="input_identities"></a> [identities](#input\_identities) | SES Identity configuration | `any` | `{}` | no |
