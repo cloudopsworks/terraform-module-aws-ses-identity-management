@@ -75,6 +75,7 @@ usage: |-
   ### Identity Configuration Options:
   Domain identity options:
   - `domain`: Domain name
+  - `validation_domain`: Domain name to use for Route 53 validation (default: domain)
   - `verify`: Enable Route 53 verification (default: false)
   - `dkim`: Enable DKIM signing (default: true)
   - `dkim_private_key`: Custom DKIM private key

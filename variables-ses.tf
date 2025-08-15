@@ -11,7 +11,8 @@
 # This variable is used to configure SES identities - below YAML format is expected
 # identities:
 #   <identity name>:
-#     domain: "example.com"
+#     domain: "test.example.com"
+#     validation_domain: "example.com"
 #     email: "mail@example.com"
 #     dkim: true | false # (default: true)
 #     verify: true | false # (default: false)
@@ -46,4 +47,10 @@ variable "dedicated_ip_pools" {
   type        = any
   default     = {}
   nullable    = false
+}
+
+variable "cross_account" {
+  description = "(optional) Cross account support for SES identity validation"
+  type        = bool
+  default     = false
 }
