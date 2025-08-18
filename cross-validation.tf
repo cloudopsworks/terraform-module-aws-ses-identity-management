@@ -24,7 +24,7 @@ resource "aws_route53_record" "cross_amazonses_dkim" {
   }
   zone_id         = data.aws_route53_zone.cross_domain[each.value.domain_key].id
   allow_overwrite = true
-  name            = "${each.value.token}._domainkey"
+  name            = "${each.value.token}._domainkey${each.value.dkim_extra}"
   type            = "CNAME"
   ttl             = "600"
   records         = ["${each.value.token}.dkim.amazonses.com"]
